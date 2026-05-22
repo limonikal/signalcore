@@ -7,6 +7,7 @@
 TypeScript-библиотека для typed event-driven архитектуры. Ядро — `Emitter` с системой триггеров, поверх которого построены:
 
 - **EventTargetEmitter** — мост к нативному DOM EventTarget
+- **NodeEventEmitter** — мост к нативному Node.js EventEmitter
 - **Middleware** — прослойка-обработчик для группы действий (actions) эмиттера
 - **Union** — объединение нескольких эмиттеров в один интерфейс
 - **ProxyEmitter** — реактивный объект: изменение поля → emit события
@@ -21,7 +22,8 @@ src/
 │   ├── sources/                — источники событий
 │   │   ├── Emitter.ts            — базовый типизированный эмиттер
 │   │   ├── Trigger.ts            — пустой класс-маркер (основа для Trigger type)
-│   │   ├── EventTargetEmitter.ts — обёртка над EventTarget
+│   │   ├── EventTargetEmitter.ts — обёртка над DOM EventTarget
+│   │   ├── NodeEventEmitter.ts    — обёртка над Node.js EventEmitter
 │   │   ├── ProxyEmitter.ts       — Proxy-реактивность (сеттер → emit)
 │   │   └── Stor.ts               — Proxy-хранилище с компараторами
 │   ├── composition/            — композиция источников
@@ -31,9 +33,10 @@ src/
 ├── hooks/
 │   ├── until.ts              — Promise, резолвящийся на первый emit
 │   └── index.ts              — barrel export hooks
-├── types.ts                  — Trigger, TriggerHandler, Options, DataEmitting, BaseActionTypes
+├── types.ts                  — Trigger, TriggerHandler, EmitterLike, BaseActionTypes, DataEmitting
 ├── symbols.ts                — символы: getActionHandlers, getAllHandlers
-└── index.ts                  — публичный API (все экспорты)
+├── index.ts                  — публичный API (все экспорты)
+└── examples/                 — примеры использования (15 файлов)
 ```
 
 ## Философия библиотеки
@@ -45,7 +48,7 @@ src/
 
 ## Ключевые решения и конвенции
 
-- **Типизация**: строгая через generic `ActionTypes extends Record<keyof, Record<any, any>>`
+- **Типизация**: строгая через generic `ActionTypes extends Record<keyof, Record<any, any>>`. Паттерн использования: `interface` → `Emitter<Interface>`.
 - **Trigger** — это не класс, а пересечение (intersection type): `TriggerClass & ActionData & { emitter }`
 - **Обработчики** хранятся в `Map<action, Set<handler>>`, итерация через `.values()` (не forEach — чтобы сохранить контроль)
 - **once** реализован через обёртку в WeakMap
@@ -53,6 +56,7 @@ src/
 - **Symbol**-ключи (`getActionHandlers`, `getAllHandlers`) для внутреннего доступа (паттерн protected без protected)
 - **EventTargetEmitter.on** создаёт AbortController для каждого listener; при вызове off — abort
 - **EventTargetEmitter**: `options` типа `AddEventListenerOptions | boolean` (DOM-тип, не самописный `Options`). Не мутирует переданный `options` — создаёт `mergedOptions` через spread. Цепляет пользовательский `signal` через `addEventListener("abort", () => aborter.abort())` без перезаписи.
+- **NodeEventEmitter**: обёртка над Node.js EventEmitter. Данные события — tuple аргументов (для одного аргумента `[Buffer]`, для нескольких `[string, number]`). Не использует AbortController — отписка через `source.off()`. Принимает любой объект с интерфейсом `{ on, once, off }`.
 - **Middleware** в конструкторе навешивает handler через `emitter.on`, destroy делает `emitter.off`
 - **Union** — композиция (делегирует emit/on/off всем emitter'ам), не extends Emitter. Принимает emitter'ы с одинаковыми ActionTypes. Поддерживает `add` и `remove` для динамической композиции. Ведёт два трекера подписок (`onSubscriptions`, `onceSubscriptions`), чтобы при `add` применять существующие подписки к новому emitter'у.
 - **PolyUnion** *(не реализован)* — будет принимать emitter'ы с разными ActionTypes, выводить пересечение общих экшенов.
@@ -101,14 +105,27 @@ src/
 
 - [x] Выбрать финальное имя пакета: **emitto** (свободно на npm)
 - [x] Обновить `name` в package.json → "emitto"
+- [ ] **BUG: `vite-plugin-dts` в `dependencies`, нужно в `devDependencies`**
+- [ ] **BUG: `vite.config.ts` — `outDirs` → `outDir` (плагин dts не сработает)**
 - [ ] Настроить `repository.url`, `homepage`, `bugs.url`
 - [ ] Проверить/добавить `files` в package.json (dist, README.md)
 - [ ] Убедиться, что сборка корректно генерирует .d.ts
 - [ ] Добавить `prepublishOnly` скрипт: `"prepublishOnly": "vite build"`
-- [ ] Добавить README.md с документацией
-- [ ] Добавить LICENSE (Apache-2.0 уже указан)
+- [x] Add `prepublishOnly` script
+- [x] Добавить README.md с документацией
+- [x] Добавить LICENSE (Apache-2.0 уже указан)
+- [x] Настроить `repository.url`, `homepage`, `bugs.url`
+- [x] Добавить `"sideEffects": false` для tree-shaking
+- [x] Исправить `outDirs` → `outDir` (vite.config.ts:21)
+- [x] Исправить `vite-plugin-dts` в `devDependencies`
+- [ ] Убедиться, что сборка корректно генерирует .d.ts
 - [ ] `npm login`
 - [ ] `npm publish --access public`
 - [ ] Настроить CI (GitHub Actions) для авто-публикации по тегам
-- [ ] Добавить `"sideEffects": false` для tree-shaking
+
+## Нереализованные баги
+
+1. **vite.config.ts:21** — `outDirs` должно быть `outDir` (задокументировано в плане публикации)
+2. **package.json:32** — `vite-plugin-dts` в `dependencies`, нужно в `devDependencies`
+
 

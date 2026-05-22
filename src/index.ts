@@ -2,6 +2,7 @@
 export { Trigger } from "@classes/sources/Trigger";
 export { Emitter } from "@classes/sources/Emitter";
 export { EventTargetEmitter } from "@classes/sources/EventTargetEmitter";
+export { NodeEventEmitter } from "@classes/sources/NodeEventEmitter";
 export { Middleware } from "@classes/boundary/Middleware";
 export { Union } from "@classes/composition/Union";
 
