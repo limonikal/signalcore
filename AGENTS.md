@@ -49,6 +49,7 @@ src/
 - **off** ищет handler напрямую, затем по once-обёртке
 - **Symbol**-ключи (`getActionHandlers`, `getAllHandlers`) для внутреннего доступа (паттерн protected без protected)
 - **EventTargetEmitter.on** создаёт AbortController для каждого listener; при вызове off — abort
+- **EventTargetEmitter**: `options` типа `AddEventListenerOptions | boolean` (DOM-тип, не самописный `Options`). Не мутирует переданный `options` — создаёт `mergedOptions` через spread. Цепляет пользовательский `signal` через `addEventListener("abort", () => aborter.abort())` без перезаписи.
 - **Middleware** в конструкторе навешивает handler через `emitter.on`, destroy делает `emitter.off` (баг: сейчас в destroy снова on!)
 - **Union** — композиция (делегирует emit/on/off всем emitter'ам), не extends Emitter. **Класс в отложенной разработке, не трогать.**
 - **ProxyEmitter/Stor** — вместо обращения к `receiver.emitter` в Proxy set trap используется **замыкание** (closure): `emitter` создаётся до Proxy, обращение через переменную. Это избавляет от `@ts-ignore` в сеттере.
