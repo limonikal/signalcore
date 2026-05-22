@@ -1,16 +1,15 @@
-import { Emitter } from "../sources/Emitter";
-import type { TriggerHandler } from "@/types";
+import type { EmitterLike, TriggerHandler } from "@/types";
 
 export class Union<ActionTypes extends Record<keyof ActionTypes, Record<any, any>>> {
-    private readonly emitters: Emitter<ActionTypes>[];
+    private readonly emitters: EmitterLike<ActionTypes>[];
     private readonly onSubscriptions = new Map<keyof ActionTypes, Set<TriggerHandler<any, any>>>();
     private readonly onceSubscriptions = new Map<keyof ActionTypes, Set<TriggerHandler<any, any>>>();
 
-    constructor(...emitters: Emitter<ActionTypes>[]) {
+    constructor(...emitters: EmitterLike<ActionTypes>[]) {
         this.emitters = [...emitters];
     }
 
-    add(emitter: Emitter<ActionTypes>): void {
+    add(emitter: EmitterLike<ActionTypes>): void {
         this.emitters.push(emitter);
 
         for (const [action, handlers] of this.onSubscriptions) {
@@ -26,7 +25,7 @@ export class Union<ActionTypes extends Record<keyof ActionTypes, Record<any, any
         }
     }
 
-    remove(emitter: Emitter<ActionTypes>): boolean {
+    remove(emitter: EmitterLike<ActionTypes>): boolean {
         const idx = this.emitters.indexOf(emitter);
         if (idx === -1) return false;
         this.emitters.splice(idx, 1);
@@ -48,7 +47,7 @@ export class Union<ActionTypes extends Record<keyof ActionTypes, Record<any, any
 
     on<Action extends keyof ActionTypes>(
         action: Action,
-        handler: TriggerHandler<ActionTypes[Action], Emitter<ActionTypes>>
+        handler: TriggerHandler<ActionTypes[Action], any>
     ) {
         let handlers = this.onSubscriptions.get(action);
         if (!handlers) {
@@ -66,7 +65,7 @@ export class Union<ActionTypes extends Record<keyof ActionTypes, Record<any, any
 
     once<Action extends keyof ActionTypes>(
         action: Action,
-        handler: TriggerHandler<ActionTypes[Action], Emitter<ActionTypes>>
+        handler: TriggerHandler<ActionTypes[Action], any>
     ) {
         let handlers = this.onceSubscriptions.get(action);
         if (!handlers) {
@@ -84,7 +83,7 @@ export class Union<ActionTypes extends Record<keyof ActionTypes, Record<any, any
 
     off<Action extends keyof ActionTypes>(
         action: Action,
-        handler: TriggerHandler<ActionTypes[Action], Emitter<ActionTypes>>
+        handler: TriggerHandler<ActionTypes[Action], any>
     ) {
         this.onSubscriptions.get(action)?.delete(handler);
         this.onceSubscriptions.get(action)?.delete(handler);
