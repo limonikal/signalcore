@@ -17,7 +17,7 @@ export default defineConfig({
     build: {
         lib: {
             entry: resolve("./src/index.ts"),
-            name: "emitto",
+            name: "emitme",
             formats: ["es", "cjs", "umd"],
             fileName: (format) => {
                 if (format === "es") return "index.esm.js";

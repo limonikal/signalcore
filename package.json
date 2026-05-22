@@ -1,19 +1,28 @@
 {
-    "name": "emitto",
+    "name": "emitme",
     "version": "1.0.0",
     "description": "Typed Event-Driven core modules",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/limonikal/emitto.git"
+        "url": "git+https://github.com/limonikal/emitme.git"
     },
-    "homepage": "https://github.com/limonikal/emitto",
+    "homepage": "https://github.com/limonikal/emitme",
     "bugs": {
-        "url": "https://github.com/limonikal/emitto/issues"
+        "url": "https://github.com/limonikal/emitme/issues"
     },
     "keywords": [
-        "event",
+        "typed-event-emitter",
         "event-driven",
-        "typescript"
+        "typescript",
+        "type-safe",
+        "event-bus",
+        "reactive",
+        "proxy",
+        "middleware",
+        "event-target",
+        "tree-shakeable",
+        "zero-dependencies",
+        "tiny"
     ],
     "license": "Apache-2.0",
     "sideEffects": false,

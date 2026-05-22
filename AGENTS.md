@@ -1,6 +1,6 @@
 # AGENTS.md — Проектная память
 
-> Имя пакета: **emitto** (проверено, свободно на npm)
+> Имя пакета: **emitme** (проверено, свободно на npm)
 
 ## О проекте
 
@@ -103,8 +103,8 @@ src/
 
 ## План публикации в npm
 
-- [x] Выбрать финальное имя пакета: **emitto** (свободно на npm)
-- [x] Обновить `name` в package.json → "emitto"
+- [x] Выбрать финальное имя пакета: **emitme** (свободно на npm)
+- [x] Обновить `name` в package.json → "emitme"
 - [ ] **BUG: `vite-plugin-dts` в `dependencies`, нужно в `devDependencies`**
 - [ ] **BUG: `vite.config.ts` — `outDirs` → `outDir` (плагин dts не сработает)**
 - [ ] Настроить `repository.url`, `homepage`, `bugs.url`
