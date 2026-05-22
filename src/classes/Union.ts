@@ -1,99 +1,165 @@
 import { Emitter } from "./Emitter";
 import type { TriggerHandler } from "@/types";
 
-type UnionActionTypes<T extends Emitter<any>[]> =
-    T[number] extends Emitter<infer U>
-        ? U
-        : never;
+export class Union<ActionTypes extends Record<keyof ActionTypes, Record<any, any>>> {
+    private readonly emitters: Emitter<ActionTypes>[];
+    private readonly onSubscriptions = new Map<keyof ActionTypes, Set<TriggerHandler<any, any>>>();
+    private readonly onceSubscriptions = new Map<keyof ActionTypes, Set<TriggerHandler<any, any>>>();
 
-export class Union<T extends Emitter<any>[]> {
-    private readonly emitters: T;
-
-    constructor(...emitters: T) {
-        this.emitters = emitters;
+    constructor(...emitters: Emitter<ActionTypes>[]) {
+        this.emitters = [...emitters];
     }
 
-    on<Action extends keyof UnionActionTypes<T>>(
-        action: Action,
-        handler: TriggerHandler<UnionActionTypes<T>[Action], any>,
-        options?: any
-    ) {
-        for (const emitter of this.emitters) {
-            (emitter as any).on(action, handler, options);
+    add(emitter: Emitter<ActionTypes>): void {
+        this.emitters.push(emitter);
+
+        for (const [action, handlers] of this.onSubscriptions) {
+            for (const handler of handlers) {
+                emitter.on(action, handler);
+            }
+        }
+
+        for (const [action, handlers] of this.onceSubscriptions) {
+            for (const handler of handlers) {
+                emitter.once(action, handler);
+            }
         }
     }
 
-    off<Action extends keyof UnionActionTypes<T>>(
+    remove(emitter: Emitter<ActionTypes>): boolean {
+        const idx = this.emitters.indexOf(emitter);
+        if (idx === -1) return false;
+        this.emitters.splice(idx, 1);
+
+        for (const [action, handlers] of this.onSubscriptions) {
+            for (const handler of handlers) {
+                emitter.off(action, handler);
+            }
+        }
+
+        for (const [action, handlers] of this.onceSubscriptions) {
+            for (const handler of handlers) {
+                emitter.off(action, handler);
+            }
+        }
+
+        return true;
+    }
+
+    on<Action extends keyof ActionTypes>(
         action: Action,
-        handler: TriggerHandler<any, any>
+        handler: TriggerHandler<ActionTypes[Action], Emitter<ActionTypes>>
     ) {
-        for (const emitter of this.emitters) {
-            (emitter as any).off(action, handler);
+        let handlers = this.onSubscriptions.get(action);
+        if (!handlers) {
+            handlers = new Set();
+            this.onSubscriptions.set(action, handlers);
+        }
+        handlers.add(handler);
+
+        const emitters = this.emitters;
+        const length = emitters.length;
+        for (let i = 0; i < length; i++) {
+            emitters[i].on(action, handler);
         }
     }
 
-    offAll<Action extends keyof UnionActionTypes<T>>(action: Action) {
-        for (const emitter of this.emitters) {
-            (emitter as any).offAll(action);
+    once<Action extends keyof ActionTypes>(
+        action: Action,
+        handler: TriggerHandler<ActionTypes[Action], Emitter<ActionTypes>>
+    ) {
+        let handlers = this.onceSubscriptions.get(action);
+        if (!handlers) {
+            handlers = new Set();
+            this.onceSubscriptions.set(action, handlers);
+        }
+        handlers.add(handler);
+
+        const emitters = this.emitters;
+        const length = emitters.length;
+        for (let i = 0; i < length; i++) {
+            emitters[i].once(action, handler);
+        }
+    }
+
+    off<Action extends keyof ActionTypes>(
+        action: Action,
+        handler: TriggerHandler<ActionTypes[Action], Emitter<ActionTypes>>
+    ) {
+        this.onSubscriptions.get(action)?.delete(handler);
+        this.onceSubscriptions.get(action)?.delete(handler);
+
+        const emitters = this.emitters;
+        const length = emitters.length;
+        for (let i = 0; i < length; i++) {
+            emitters[i].off(action, handler);
+        }
+    }
+
+    offAll<Action extends keyof ActionTypes>(action: Action) {
+        this.onSubscriptions.delete(action);
+        this.onceSubscriptions.delete(action);
+
+        const emitters = this.emitters;
+        const length = emitters.length;
+        for (let i = 0; i < length; i++) {
+            emitters[i].offAll(action);
         }
     }
 
     clear() {
-        for (const emitter of this.emitters) {
-            emitter.clear();
+        this.onSubscriptions.clear();
+        this.onceSubscriptions.clear();
+
+        const emitters = this.emitters;
+        const length = emitters.length;
+        for (let i = 0; i < length; i++) {
+            emitters[i].clear();
         }
     }
 
-    emit<Action extends keyof UnionActionTypes<T>>(action: Action, data: UnionActionTypes<T>[Action]) {
-        for (const emitter of this.emitters) {
-            (emitter as any).emit(action, data);
+    emit<Action extends keyof ActionTypes>(action: Action, data: ActionTypes[Action]): boolean {
+        let result = false;
+        const emitters = this.emitters;
+        const length = emitters.length;
+        for (let i = 0; i < length; i++) {
+            if (emitters[i].emit(action, data)) result = true;
         }
+        return result;
+    }
+
+    hasListeners<Action extends keyof ActionTypes>(action: Action): boolean {
+        if (this.onSubscriptions.has(action) || this.onceSubscriptions.has(action)) return true;
+        const emitters = this.emitters;
+        const length = emitters.length;
+        for (let i = 0; i < length; i++) {
+            if (emitters[i].hasListeners(action)) return true;
+        }
+        return false;
+    }
+
+    listenerCount<Action extends keyof ActionTypes>(action?: Action): number {
+        let count = 0;
+        const emitters = this.emitters;
+        const length = emitters.length;
+        for (let i = 0; i < length; i++) {
+            count += emitters[i].listenerCount(action);
+        }
+        return count;
+    }
+
+    actions(): (keyof ActionTypes)[] {
+        const emitters = this.emitters;
+        const length = emitters.length;
+        if (length === 0) return [];
+        const set = new Set<keyof ActionTypes>();
+        for (let i = 0; i < length; i++) {
+            const actions = emitters[i].actions();
+            const actionsLength = actions.length;
+            for (let j = 0; j < actionsLength; j++) {
+                set.add(actions[j]);
+            }
+        }
+        return [...set];
     }
 }
-
-
-// export class Union<ActionTypes extends Record<keyof ActionTypes, Record<any, any>>> extends Emitter<ActionTypes> {
-//     private readonly emitters: Emitter<ActionTypes>[];
-//
-//     constructor(...emitters: Emitter<ActionTypes>[]) {
-//         super();
-//         this.emitters = emitters;
-//     }
-//
-//     on<Action extends keyof ActionTypes>(
-//         action: Action,
-//         handler: TriggerHandler<ActionTypes[Action], Emitter<ActionTypes>>,
-//         // @ts-ignore
-//         options?: any
-//     ) {
-//         const emitters = this.emitters;
-//         const length = emitters.length;
-//         for (let i = 0; i < length; i++) {
-//             emitters[i].on(action, handler, options);
-//         }
-//     }
-//
-//     off<Action extends keyof ActionTypes>(action: Action, handler: TriggerHandler<any, any>) {
-//         const emitters = this.emitters;
-//         const length = emitters.length;
-//         for (let i = 0; i < length; i++) {
-//             emitters[i].off(action, handler);
-//         }
-//     }
-//
-//     offAll<Action extends keyof ActionTypes>(action: Action) {
-//         const emitters = this.emitters;
-//         const length = emitters.length;
-//         for (let i = 0; i < length; i++) {
-//             emitters[i].offAll(action);
-//         }
-//     }
-//
-//     clear() {
-//         const emitters = this.emitters;
-//         const length = emitters.length;
-//         for (let i = 0; i < length; i++) {
-//             emitters[i].clear();
-//         }
-//     }
-// }

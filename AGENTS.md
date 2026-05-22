@@ -50,8 +50,9 @@ src/
 - **Symbol**-ключи (`getActionHandlers`, `getAllHandlers`) для внутреннего доступа (паттерн protected без protected)
 - **EventTargetEmitter.on** создаёт AbortController для каждого listener; при вызове off — abort
 - **EventTargetEmitter**: `options` типа `AddEventListenerOptions | boolean` (DOM-тип, не самописный `Options`). Не мутирует переданный `options` — создаёт `mergedOptions` через spread. Цепляет пользовательский `signal` через `addEventListener("abort", () => aborter.abort())` без перезаписи.
-- **Middleware** в конструкторе навешивает handler через `emitter.on`, destroy делает `emitter.off` (баг: сейчас в destroy снова on!)
-- **Union** — композиция (делегирует emit/on/off всем emitter'ам), не extends Emitter. **Класс в отложенной разработке, не трогать.**
+- **Middleware** в конструкторе навешивает handler через `emitter.on`, destroy делает `emitter.off`
+- **Union** — композиция (делегирует emit/on/off всем emitter'ам), не extends Emitter. Принимает emitter'ы с одинаковыми ActionTypes. Поддерживает `add` и `remove` для динамической композиции. Ведёт два трекера подписок (`onSubscriptions`, `onceSubscriptions`), чтобы при `add` применять существующие подписки к новому emitter'у.
+- **PolyUnion** *(не реализован)* — будет принимать emitter'ы с разными ActionTypes, выводить пересечение общих экшенов.
 - **ProxyEmitter/Stor** — `emitter` создаётся до Proxy и доступен через **замыкание** (closure), а не через `receiver`. Это избавляет от `@ts-ignore` в сеттере. `set` trap возвращает `true` (иначе TypeError в strict mode).
 - **Object.defineProperty/defineProperties** — паттерн добавления служебных полей (`emitter`, `comparators`) на proxy-объект, **не затрагивая target**. Обычное присвоение `proxy.emitter = ...` записалось бы на target и смешалось бы с пользовательскими данными. defineProperty вешает поле только на proxy, а `enumerable: false` скрывает его от `for..in`/`JSON.stringify`.
 - **deleteProperty → false** — гарантия целостности типа. Если удалить поле из реактивного объекта, структура перестаёт соответствовать `Data`. Блокируя delete, гарантируем: state всегда содержит все поля из типа, любое изменение проходит через `set` → emit.
@@ -106,8 +107,4 @@ src/
 - [ ] `npm publish --access public`
 - [ ] Настроить CI (GitHub Actions) для авто-публикации по тегам
 - [ ] Добавить `"sideEffects": false` для tree-shaking
-
-## Известные баги
-
-1. **Middleware.destroy()** вызывает `emitter.on()` вместо `emitter.off()` — строки 45-46 в Middleware.ts
 
