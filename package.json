@@ -1,0 +1,52 @@
+{
+    "name": "test-emitter",
+    "version": "0.0.1",
+    "description": "Typed Event-Driven core modules",
+    "repository": {
+        "type": "git",
+        "url": ""
+    },
+    "homepage": "",
+    "bugs": {
+        "url": ""
+    },
+    "keywords": [
+        "event",
+        "event-driven",
+        "typescript"
+    ],
+    "license": "Apache-2.0",
+    "scripts": {
+        "start": "vite",
+        "start.host": "vite --host",
+        "build": "vite build",
+        "preview": "vite preview",
+        "preview.host": "vite preview --host",
+        "previewBuild": "vite build & vite preview"
+    },
+    "devDependencies": {
+        "typescript": "^6.0.3",
+        "vite": "^8.0.11"
+    },
+    "dependencies": {
+        "vite-plugin-dts": "^5.0.1"
+    },
+    "files": [
+        "dist",
+        "README.md"
+    ],
+    "main": "./dist/index.cjs.js",
+    "module": "./dist/index.esm.js",
+    "types": "./dist/index.d.ts",
+    "browser": "./dist/index.umd.js",
+    "unpkg": "./dist/index.umd.js",
+    "jsdelivr": "./dist/index.umd.js",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.esm.js",
+            "require": "./dist/index.cjs.js"
+        },
+        "./package.json": "./package.json"
+    }
+}
