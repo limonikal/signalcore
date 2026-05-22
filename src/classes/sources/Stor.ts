@@ -34,7 +34,7 @@ export function createStor<Data extends object>(
             const comparator = comparators[key] ?? baseCompare;
             if (comparator(from, value)) return true;
             target[key] = value;
-            emitter.emit(key, { from, value });
+            emitter.emit(key, { from, value } as DataEmitting<Data>[typeof key]);
             return true;
         },
     });

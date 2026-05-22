@@ -3,10 +3,12 @@ import { Trigger as TriggerClass } from "@classes/sources/Trigger";
 export type Trigger<ActionData, EmitterThis> = TriggerClass & ActionData & { emitter: EmitterThis };
 export type TriggerHandler<ActionData, EmitterThis> = (trigger: Trigger<ActionData, EmitterThis>) => void;
 export type BaseActionTypes<ActionTypes> = Record<keyof ActionTypes, Record<any, any>>;
-export type DataEmitting<Data extends object> = Record<keyof Data, {
-    from: Data[keyof Data];
-    value: Data[keyof Data];
-}>;
+export type DataEmitting<Data extends object> = {
+    [K in keyof Data]: {
+        from: Data[K];
+        value: Data[K];
+    };
+};
 
 export type EmitterLike<ActionTypes extends Record<keyof ActionTypes, Record<any, any>>> = {
     emit<Action extends keyof ActionTypes>(action: Action, data: ActionTypes[Action]): boolean;

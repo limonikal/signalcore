@@ -18,7 +18,7 @@ export function createProxyEmitter<Data extends object>(initState: Data) {
             const key = name as keyof Data;
             const from = target[key];
             target[key] = value;
-            emitter.emit(key, { from, value });
+            emitter.emit(key, { from, value } as DataEmitting<Data>[typeof key]);
             return true;
         },
     });
