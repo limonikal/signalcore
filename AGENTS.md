@@ -1,6 +1,6 @@
 # AGENTS.md — Проектная память
 
-> Имя пакета: **emitme** (проверено, свободно на npm)
+> Имя пакета: **signalcore** (проверено, свободно на npm)
 
 ## О проекте
 
@@ -103,8 +103,8 @@ src/
 
 ## План публикации в npm
 
-- [x] Выбрать финальное имя пакета: **emitme** (свободно на npm)
-- [x] Обновить `name` в package.json → "emitme"
+- [x] Выбрать финальное имя пакета: **signalcore** (свободно на npm)
+- [x] Обновить `name` в package.json → "signalcore"
 - [ ] **BUG: `vite-plugin-dts` в `dependencies`, нужно в `devDependencies`**
 - [ ] **BUG: `vite.config.ts` — `outDirs` → `outDir` (плагин dts не сработает)**
 - [ ] Настроить `repository.url`, `homepage`, `bugs.url`

@@ -1,14 +1,14 @@
 {
-    "name": "emitme",
+    "name": "signalcore",
     "version": "1.0.0",
     "description": "Typed Event-Driven core modules",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/limonikal/emitme.git"
+        "url": "git+https://github.com/limonikal/signalcore.git"
     },
-    "homepage": "https://github.com/limonikal/emitme",
+    "homepage": "https://github.com/limonikal/signalcore",
     "bugs": {
-        "url": "https://github.com/limonikal/emitme/issues"
+        "url": "https://github.com/limonikal/signalcore/issues"
     },
     "keywords": [
         "typed-event-emitter",

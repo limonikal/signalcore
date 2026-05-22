@@ -1,4 +1,4 @@
-# emitme
+# signalcore
 
 Typed event-driven architecture for TypeScript. Zero runtime overhead. Full type safety.
 
@@ -18,9 +18,9 @@ emitter.emit("login", { user: "Alice" });
 
 ---
 
-## Why emitme?
+## Why signalcore?
 
-Most event libraries treat events as strings with `any` payload. You lose type information the moment you call `emit` or `on`. emitme fixes this at the core: **every action is permanently linked to its data type**.
+Most event libraries treat events as strings with `any` payload. You lose type information the moment you call `emit` or `on`. signalcore fixes this at the core: **every action is permanently linked to its data type**.
 
 - **Full type safety** — `emit` with wrong data is a compile error. Handlers receive exactly the type declared for the action. No `any` leaks.
 - **Tree-shakable** — import only what you use. ESM + CJS dual format.
@@ -42,7 +42,7 @@ Most event libraries treat events as strings with `any` payload. You lose type i
 ## Quick example
 
 ```ts
-import { Emitter, until } from "emitme";
+import { Emitter, until } from "signalcore";
 
 type Events = {
     ready: { data: string };
@@ -71,23 +71,23 @@ More examples are available in the [`examples/`](./examples) folder of the repos
 ## Installation
 
 ```sh
-npm install emitme
+npm install signalcore
 ```
 
 ```sh
-yarn add emitme
+yarn add signalcore
 ```
 
 ```sh
-pnpm add emitme
+pnpm add signalcore
 ```
 
 ```ts
 // ESM
-import { Emitter, Union, until } from "emitme";
+import { Emitter, Union, until } from "signalcore";
 
 // CJS
-const { Emitter, Union, until } = require("emitme");
+const { Emitter, Union, until } = require("signalcore");
 ```
 
 ---
@@ -99,7 +99,7 @@ const { Emitter, Union, until } = require("emitme");
 The foundation. An `Emitter` maps action names to their data types.
 
 ```ts
-import { Emitter } from "emitme";
+import { Emitter } from "signalcore";
 
 type AppEvents = {
     login: { user: string };
@@ -147,7 +147,7 @@ TriggerClass & ActionData & { emitter: Emitter<ActionTypes> }
 Wraps a native `EventTarget` (DOM element, `window`, `document`) and bridges its events into the typed emitter system.
 
 ```ts
-import { EventTargetEmitter } from "emitme";
+import { EventTargetEmitter } from "signalcore";
 
 const clicks = new EventTargetEmitter<{
     click: MouseEvent;
@@ -173,7 +173,7 @@ Wraps a Node.js `EventEmitter` (or any object with `on`/`once`/`off`) into the t
 
 ```ts
 import { EventEmitter } from "events";
-import { NodeEventEmitter } from "emitme";
+import { NodeEventEmitter } from "signalcore";
 
 const source = new EventEmitter();
 
@@ -195,7 +195,7 @@ bridge.on("data", ([chunk]) => {
 Combines multiple emitters with the same `ActionTypes` into one interface. Supports dynamic `add` and `remove`.
 
 ```ts
-import { Emitter, Union } from "emitme";
+import { Emitter, Union } from "signalcore";
 
 type Events = { tick: number };
 
@@ -226,7 +226,7 @@ const outer = new Union(inner, e3); // nested Union
 Attaches one handler to multiple actions. Useful for logging, metrics, or cross-cutting concerns.
 
 ```ts
-import { Emitter, Middleware } from "emitme";
+import { Emitter, Middleware } from "signalcore";
 
 const bus = new Emitter<{ login: {}; logout: {} }>();
 
@@ -246,7 +246,7 @@ logger.destroy(); // unsubscribes from both actions
 Turns a plain object into a reactive proxy: property assignment automatically emits an event with `{ from, value }`.
 
 ```ts
-import { createProxyEmitter } from "emitme";
+import { createProxyEmitter } from "signalcore";
 
 const state = createProxyEmitter({ x: 0, y: 0 });
 
@@ -271,7 +271,7 @@ JSON.stringify(state); // "{"x":20,"y":0}"
 Like `createProxyEmitter`, but with custom comparators. Does not emit if the new value equals the old one by your comparator.
 
 ```ts
-import { createStor } from "emitme";
+import { createStor } from "signalcore";
 
 const store = createStor(
     { user: { name: "Alice" }, count: 0 },
@@ -293,7 +293,7 @@ store.count = 1;                 // emits
 Returns a `Promise` that resolves with the `Trigger` on the next emission.
 
 ```ts
-import { Emitter, until } from "emitme";
+import { Emitter, until } from "signalcore";
 
 async function start() {
     const trigger = await until(bus, "ready");
@@ -317,7 +317,7 @@ const result = await Promise.race([
 Any object that satisfies the `EmitterLike` interface — including `Emitter`, `Union`, or custom implementations — can be used wherever an event source is expected. This enables unlimited compositional flexibility.
 
 ```ts
-import type { EmitterLike } from "emitme";
+import type { EmitterLike } from "signalcore";
 
 function onTick(target: EmitterLike<{ tick: number }>) {
     target.on("tick", (t) => console.log(t));
