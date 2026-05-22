@@ -22,39 +22,33 @@ export function createStor<Data extends object>(
         [K in keyof Data]: Comparator<Data, K>;
     }> = {}) {
 
+    const emitter = new Emitter<DataEmitting<Data>>();
+
     const proxy = new Proxy(initState, {
         deleteProperty() {
             return false;
         },
-        // @ts-ignore
-        set<Key extends keyof Data>(
-            target: Data,
-            name: Key,
-            value: Data[Key],
-            receiver: {
-                emitter: Emitter<DataEmitting<Data>>,
-                comparators: Partial<Record<keyof Data, (...args: any[]) => boolean>>
-            }
-        ) {
-            const from = target[name];
-            const comparator = receiver.comparators[name] ?? baseCompare;
+        set(target: Data, name: string | symbol, value: Data[keyof Data]) {
+            const key = name as keyof Data;
+            const from = target[key];
+            const comparator = comparators[key] ?? baseCompare;
             if (comparator(from, value)) return true;
-            target[name] = value;
-            receiver.emitter.emit(name, { from, value });
+            target[key] = value;
+            emitter.emit(key, { from, value });
             return true;
         },
     });
 
     Object.defineProperties(proxy, {
         emitter: {
-            value: new Emitter<DataEmitting<Data>>(),
+            value: emitter,
             enumerable: false,
             writable: false,
         },
         comparators: {
             value: comparators,
             enumerable: false,
-            writable: true,
+            writable: false,
         },
     });
 
