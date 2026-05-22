@@ -1,6 +1,6 @@
 {
     "name": "signalcore",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Typed Event-Driven core modules",
     "repository": {
         "type": "git",
