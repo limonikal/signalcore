@@ -1,6 +1,6 @@
 # AGENTS.md — Проектная память
 
-> Имя пакета: **signalcore** (проверено, свободно на npm)
+> Имя пакета: **signalcore**
 
 ## О проекте
 
@@ -100,32 +100,4 @@ src/
 ## Запреты
 
 - **НЕ запускать `vite build` без явной просьбы пользователя.** Только если он сам попросит собрать проект.
-
-## План публикации в npm
-
-- [x] Выбрать финальное имя пакета: **signalcore** (свободно на npm)
-- [x] Обновить `name` в package.json → "signalcore"
-- [ ] **BUG: `vite-plugin-dts` в `dependencies`, нужно в `devDependencies`**
-- [ ] **BUG: `vite.config.ts` — `outDirs` → `outDir` (плагин dts не сработает)**
-- [ ] Настроить `repository.url`, `homepage`, `bugs.url`
-- [ ] Проверить/добавить `files` в package.json (dist, README.md)
-- [ ] Убедиться, что сборка корректно генерирует .d.ts
-- [ ] Добавить `prepublishOnly` скрипт: `"prepublishOnly": "vite build"`
-- [x] Add `prepublishOnly` script
-- [x] Добавить README.md с документацией
-- [x] Добавить LICENSE (Apache-2.0 уже указан)
-- [x] Настроить `repository.url`, `homepage`, `bugs.url`
-- [x] Добавить `"sideEffects": false` для tree-shaking
-- [x] Исправить `outDirs` → `outDir` (vite.config.ts:21)
-- [x] Исправить `vite-plugin-dts` в `devDependencies`
-- [ ] Убедиться, что сборка корректно генерирует .d.ts
-- [ ] `npm login`
-- [ ] `npm publish --access public`
-- [ ] Настроить CI (GitHub Actions) для авто-публикации по тегам
-
-## Нереализованные баги
-
-1. **vite.config.ts:21** — `outDirs` должно быть `outDir` (задокументировано в плане публикации)
-2. **package.json:32** — `vite-plugin-dts` в `dependencies`, нужно в `devDependencies`
-
 
