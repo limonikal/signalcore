@@ -18,13 +18,16 @@ TypeScript-библиотека для typed event-driven архитектуры
 ```
 src/
 ├── classes/
-│   ├── Emitter.ts            — базовый типизированный эмиттер
-│   ├── Trigger.ts            — пустой класс-маркер (основа для Trigger type)
-│   ├── EventTargetEmitter.ts — обёртка над EventTarget
-│   ├── Middleware.ts          — middleware для группы actions
-│   ├── Union.ts              — объединение эмиттеров
-│   ├── ProxyEmitter.ts       — Proxy-реактивность (сеттер → emit)
-│   └── Stor.ts               — Proxy-хранилище с компараторами
+│   ├── sources/                — источники событий
+│   │   ├── Emitter.ts            — базовый типизированный эмиттер
+│   │   ├── Trigger.ts            — пустой класс-маркер (основа для Trigger type)
+│   │   ├── EventTargetEmitter.ts — обёртка над EventTarget
+│   │   ├── ProxyEmitter.ts       — Proxy-реактивность (сеттер → emit)
+│   │   └── Stor.ts               — Proxy-хранилище с компараторами
+│   ├── composition/            — композиция источников
+│   │   └── Union.ts              — объединение эмиттеров
+│   └── boundary/               — границы/прослойки
+│       └── Middleware.ts          — middleware для группы actions
 ├── hooks/
 │   ├── until.ts              — Promise, резолвящийся на первый emit
 │   └── index.ts              — barrel export hooks

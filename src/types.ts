@@ -1,5 +1,5 @@
-import { Emitter } from "@classes/Emitter";
-import { Trigger as TriggerClass } from "@classes/Trigger";
+import { Emitter } from "@classes/sources/Emitter";
+import { Trigger as TriggerClass } from "@classes/sources/Trigger";
 
 export type Trigger<ActionData, EmitterThis extends Emitter<any>> = TriggerClass & ActionData & { emitter: EmitterThis };
 export type TriggerHandler<ActionData, EmitterThis extends Emitter<any>> = (trigger: Trigger<ActionData, EmitterThis>) => void;

@@ -1,4 +1,4 @@
-import { Emitter } from "./Emitter";
+import { Emitter } from "../sources/Emitter";
 import type { TriggerHandler } from "@/types";
 
 export class Union<ActionTypes extends Record<keyof ActionTypes, Record<any, any>>> {

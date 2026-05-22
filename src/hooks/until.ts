@@ -1,4 +1,4 @@
-import { type Emitter } from "@classes/Emitter";
+import { type Emitter } from "@classes/sources/Emitter";
 import type { BaseActionTypes, Trigger } from "@/types";
 
 export async function until<

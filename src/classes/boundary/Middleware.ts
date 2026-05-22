@@ -1,4 +1,4 @@
-import { Emitter } from "./Emitter";
+import { Emitter } from "../sources/Emitter";
 import type { Trigger } from "@/types";
 
 type MiddlewareActionTypes<
