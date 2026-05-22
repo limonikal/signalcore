@@ -8,21 +8,26 @@ export type ProxyEmitter<Data extends object> = {
 }
 
 export function createProxyEmitter<Data extends object>(initState: Data) {
+    const emitter = new Emitter<DataEmitting<Data>>();
+
     const proxy = new Proxy(initState, {
         deleteProperty() {
             return false;
         },
-        // @ts-ignore
-        set<K extends keyof Data>(target: Data, name: keyof Data, value: Data[K], receiver: { emitter: Emitter<DataEmitting<Data>> }) {
-            const from = target[name];
-            target[name] = value;
-            receiver.emitter.emit(name, { from, value });
+        set(target: Data, name: string | symbol, value: Data[keyof Data]) {
+            const key = name as keyof Data;
+            const from = target[key];
+            target[key] = value;
+            emitter.emit(key, { from, value } as DataEmitting<Data>[typeof key]);
+            return true;
         },
     });
+
     Object.defineProperty(proxy, "emitter", {
-        value: new Emitter<DataEmitting<Data>>(),
+        value: emitter,
         enumerable: false,
         writable: false,
     });
+
     return proxy as ProxyEmitter<Data>;
 }

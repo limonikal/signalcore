@@ -1,13 +1,14 @@
 // emitters
-export { Trigger } from "@classes/Trigger";
-export { Emitter } from "@classes/Emitter";
-export { EventTargetEmitter } from "@classes/EventTargetEmitter";
-export { Middleware } from "@classes/Middleware";
-export { Union } from "@classes/Union";
+export { Trigger } from "@classes/sources/Trigger";
+export { Emitter } from "@classes/sources/Emitter";
+export { EventTargetEmitter } from "@classes/sources/EventTargetEmitter";
+export { NodeEventEmitter } from "@classes/sources/NodeEventEmitter";
+export { Middleware } from "@classes/boundary/Middleware";
+export { Union } from "@classes/composition/Union";
 
 // emitter hooks
 export { until } from "@hooks";
 
 // structures
-export { createProxyEmitter, type ProxyEmitter } from "@classes/ProxyEmitter";
-export { createStor, type Stor } from "@classes/Stor";
+export { createProxyEmitter, type ProxyEmitter } from "@classes/sources/ProxyEmitter";
+export { createStor, type Stor } from "@classes/sources/Stor";

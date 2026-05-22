@@ -1,34 +1,43 @@
 {
-    "name": "test-emitter",
-    "version": "0.0.1",
+    "name": "signalcore",
+    "version": "1.0.1",
     "description": "Typed Event-Driven core modules",
     "repository": {
         "type": "git",
-        "url": ""
+        "url": "git+https://github.com/limonikal/signalcore.git"
     },
-    "homepage": "",
+    "homepage": "https://github.com/limonikal/signalcore",
     "bugs": {
-        "url": ""
+        "url": "https://github.com/limonikal/signalcore/issues"
     },
     "keywords": [
-        "event",
+        "typed-event-emitter",
         "event-driven",
-        "typescript"
+        "typescript",
+        "type-safe",
+        "event-bus",
+        "reactive",
+        "proxy",
+        "middleware",
+        "event-target",
+        "tree-shakeable",
+        "zero-dependencies",
+        "tiny"
     ],
     "license": "Apache-2.0",
+    "sideEffects": false,
     "scripts": {
         "start": "vite",
         "start.host": "vite --host",
         "build": "vite build",
         "preview": "vite preview",
         "preview.host": "vite preview --host",
-        "previewBuild": "vite build & vite preview"
+        "previewBuild": "vite build & vite preview",
+        "prepublishOnly": "vite build"
     },
     "devDependencies": {
         "typescript": "^6.0.3",
-        "vite": "^8.0.11"
-    },
-    "dependencies": {
+        "vite": "^8.0.11",
         "vite-plugin-dts": "^5.0.1"
     },
     "files": [

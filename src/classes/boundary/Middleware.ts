@@ -1,4 +1,4 @@
-import { Emitter } from "./Emitter";
+import { Emitter } from "../sources/Emitter";
 import type { Trigger } from "@/types";
 
 type MiddlewareActionTypes<
@@ -14,9 +14,10 @@ export class Middleware<
     ActionTypes extends Record<keyof ActionTypes, Record<any, any>>,
     UsedActions extends (keyof ActionTypes)[]
 > {
-    private readonly emitter: Emitter<ActionTypes>;
-    private readonly handler: MiddlewareHandler<ActionTypes, UsedActions>;
+    private emitter: Emitter<ActionTypes> | null = null;
+    private handler: MiddlewareHandler<ActionTypes, UsedActions> | null = null;
     private readonly wrappingActions: UsedActions;
+    private destroyed = false;
 
     constructor(
         emitter: Emitter<ActionTypes>,
@@ -34,15 +35,19 @@ export class Middleware<
     }
 
     get actions() {
-        return this.wrappingActions;
+        return [...this.wrappingActions];
     }
 
     destroy() {
-        const actions = this.wrappingActions;
+        if (this.destroyed) return;
+        this.destroyed = true;
+        const { emitter, handler, wrappingActions: actions } = this;
+        if (!emitter || !handler) return;
         const length = actions.length;
-        const handler = this.handler;
         for (let i = 0; i < length; i++) {
-            this.emitter.on(actions[i], handler);
+            emitter.off(actions[i], handler);
         }
+        this.emitter = null;
+        this.handler = null;
     }
 }
