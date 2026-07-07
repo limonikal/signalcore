@@ -10,6 +10,7 @@ TypeScript-библиотека для typed event-driven архитектуры
 - **NodeEventEmitter** — мост к нативному Node.js EventEmitter
 - **Middleware** — прослойка-обработчик для группы действий (actions) эмиттера
 - **Union** — объединение нескольких эмиттеров в один интерфейс
+- **Bus** — центральная шина: к ней подключаются эмиттеры, Bus ре-эмитит все их события с обёрткой `{ action, data }`
 - **ProxyEmitter** — реактивный объект: изменение поля → emit события
 - **Stor** — реактивное хранилище с кастомными компараторами (не эмитит, если значение не изменилось)
 - **until** — асинхронный хелпер: ждёт один emit и резолвит Trigger
@@ -27,14 +28,15 @@ src/
 │   │   ├── ProxyEmitter.ts       — Proxy-реактивность (сеттер → emit)
 │   │   └── Stor.ts               — Proxy-хранилище с компараторами
 │   ├── composition/            — композиция источников
-│   │   └── Union.ts              — объединение эмиттеров
+│   │   ├── Union.ts              — объединение эмиттеров
+│   │   └── Bus.ts                — центральная шина событий
 │   └── boundary/               — границы/прослойки
 │       └── Middleware.ts          — middleware для группы actions
 ├── hooks/
 │   ├── until.ts              — Promise, резолвящийся на первый emit
 │   └── index.ts              — barrel export hooks
 ├── types.ts                  — Trigger, TriggerHandler, EmitterLike, BaseActionTypes, DataEmitting
-├── symbols.ts                — символы: getActionHandlers, getAllHandlers
+├── symbols.ts                — символы: getActionHandlers, getAllHandlers, connectBus, disconnectBus, callBus
 ├── index.ts                  — публичный API (все экспорты)
 └── examples/                 — примеры использования (15 файлов)
 ```
@@ -42,24 +44,26 @@ src/
 ## Философия библиотеки
 
 - **Type safety first** — каждое событие жёстко привязано к своему типу данных через `Emitter<ActionTypes>`. Никаких `any`-утечек: emit с неверным типом данных — ошибка компиляции, обработчик получает именно тот тип, который задекларирован для экшена.
-- **Trigger как runtime-сущность** — `TriggerClass` сделан классом (не интерфейсом) ради `instanceof Trigger` в рантайме. Данные намешиваются через `Object.assign` поверх экземпляра, чтобы в одном объекте были и проверяемый тип, и payload, и ссылка на emitter.
+- **Trigger как runtime-сущность** — `TriggerClass` сделан классом (не интерфейсом) ради `instanceof Trigger` в рантайме. Данные намешиваются через `Object.assign` поверх экземпляра. Trigger — это `TriggerClass & ActionData` (без ссылки на emitter, чтобы не привязывать Trigger к источнику).
 - **Память под контролем** — WeakMap для once-обёрток (оригинальный handler может GC-нуться, обёртка исчезнет сама). Никаких ручных чисток кроме тех, что явно вызвал пользователь (`off`, `offAll`, `clear`, `destroy`). Никаких таймеров, глобальных кешей, утечек через забытые подписки.
 - **Читаемость важнее магии** — код пишется в расчёте на то, что его будут читать. Отказ от `forEach` в пользу ручного итератора — чтобы было видно контроль потока. WeakMap для once вместо сложных Set'ов обёрток.
 
 ## Ключевые решения и конвенции
 
 - **Типизация**: строгая через generic `ActionTypes extends Record<keyof, Record<any, any>>`. Паттерн использования: `interface` → `Emitter<Interface>`.
-- **Trigger** — это не класс, а пересечение (intersection type): `TriggerClass & ActionData & { emitter }`
+- **Trigger** — это не класс, а пересечение (intersection type): `TriggerClass & ActionData` (без `emitter`)
 - **Обработчики** хранятся в `Map<action, Set<handler>>`, итерация через `.values()` (не forEach — чтобы сохранить контроль)
 - **once** реализован через обёртку в WeakMap
 - **off** ищет handler напрямую, затем по once-обёртке
 - **Symbol**-ключи (`getActionHandlers`, `getAllHandlers`) для внутреннего доступа (паттерн protected без protected)
+- **Symbol**-ключи (`connectBus`, `disconnectBus`, `callBus`) для внутреннего взаимодействия Emitter ↔ Bus
 - **EventTargetEmitter.on** создаёт AbortController для каждого listener; при вызове off — abort
 - **EventTargetEmitter**: `options` типа `AddEventListenerOptions | boolean` (DOM-тип, не самописный `Options`). Не мутирует переданный `options` — создаёт `mergedOptions` через spread. Цепляет пользовательский `signal` через `addEventListener("abort", () => aborter.abort())` без перезаписи.
 - **NodeEventEmitter**: обёртка над Node.js EventEmitter. Данные события — tuple аргументов (для одного аргумента `[Buffer]`, для нескольких `[string, number]`). Не использует AbortController — отписка через `source.off()`. Принимает любой объект с интерфейсом `{ on, once, off }`.
 - **Middleware** в конструкторе навешивает handler через `emitter.on`, destroy делает `emitter.off`
 - **Union** — композиция (делегирует emit/on/off всем emitter'ам), не extends Emitter. Принимает emitter'ы с одинаковыми ActionTypes. Поддерживает `add` и `remove` для динамической композиции. Ведёт два трекера подписок (`onSubscriptions`, `onceSubscriptions`), чтобы при `add` применять существующие подписки к новому emitter'у.
 - **PolyUnion** *(не реализован)* — будет принимать emitter'ы с разными ActionTypes, выводить пересечение общих экшенов.
+- **Bus** — extends Emitter (в отличие от Union, который — композиция). Emitter хранит `Set<Bus>` и при каждом `emit` через Symbol `[callBus]` уведомляет все подключённые Bus'ы. Bus оборачивает данные в `{ action, data }` и ре-эмитит. Bus не типизирует экшены — пользователь сам задаёт тип через `bus.on<Data>(action, handler)`.
 - **ProxyEmitter/Stor** — `emitter` создаётся до Proxy и доступен через **замыкание** (closure), а не через `receiver`. Это избавляет от `@ts-ignore` в сеттере. `set` trap возвращает `true` (иначе TypeError в strict mode).
 - **Object.defineProperty/defineProperties** — паттерн добавления служебных полей (`emitter`, `comparators`) на proxy-объект, **не затрагивая target**. Обычное присвоение `proxy.emitter = ...` записалось бы на target и смешалось бы с пользовательскими данными. defineProperty вешает поле только на proxy, а `enumerable: false` скрывает его от `for..in`/`JSON.stringify`.
 - **deleteProperty → false** — гарантия целостности типа. Если удалить поле из реактивного объекта, структура перестаёт соответствовать `Data`. Блокируя delete, гарантируем: state всегда содержит все поля из типа, любое изменение проходит через `set` → emit.
@@ -74,7 +78,7 @@ src/
 
 | Метод | Сигнатура | Описание |
 |---|---|---|
-| `emit` | `(action, data) → boolean` | Создаёт Trigger (emitter non-enumerable), вызывает handler'ы. `true` — были вызваны, `false` — нет подписчиков |
+| `emit` | `(action, data) → boolean` | Создаёт Trigger, вызывает handler'ы, затем уведомляет подключённые Bus'ы через `[callBus]`. `true` — были вызваны handler'ы или Bus'ы, `false` — нет ни тех, ни других |
 | `on` | `(action, handler)` | Подписка на экшен |
 | `once` | `(action, handler)` | Подписка на один emit, затем авто-отписка |
 | `off` | `(action, handler)` | Отписка. Handler типизирован под action |
@@ -87,10 +91,6 @@ src/
 ## Эмиттер: обработка ошибок
 
 `emit` оборачивает каждый вызов handler'а в try-catch. Один упавший handler не обрывает цепь — остальные получают trigger. Ошибка уходит в `console.error`. Никаких опций suppress/throw — решение принято в пользу **читаемости и простоты**.
-
-## Эмиттер: emitter на Trigger
-
-Поле `emitter` на Trigger — non-enumerable через `Object.defineProperty`. Это единый паттерн со Stor и ProxyEmitter: служебные поля не просачиваются в `for..in`/`JSON.stringify`.
 
 ## Правила совместимости
 

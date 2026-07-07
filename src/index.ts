@@ -5,6 +5,7 @@ export { EventTargetEmitter } from "@classes/sources/EventTargetEmitter";
 export { NodeEventEmitter } from "@classes/sources/NodeEventEmitter";
 export { Middleware } from "@classes/boundary/Middleware";
 export { Union } from "@classes/composition/Union";
+export { Bus } from "@classes/composition/Bus";
 
 // emitter hooks
 export { until } from "@hooks";
@@ -12,3 +13,10 @@ export { until } from "@hooks";
 // structures
 export { createProxyEmitter, type ProxyEmitter } from "@classes/sources/ProxyEmitter";
 export { createStor, type Stor } from "@classes/sources/Stor";
+
+// types
+export type {
+    Trigger as TriggerLike,
+    EmitterLike,
+    TriggerHandler,
+} from "./types";

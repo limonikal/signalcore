@@ -1,29 +1,42 @@
 import { Trigger as TriggerClass } from "./Trigger";
 import type { Trigger, TriggerHandler } from "@/types";
-import { getActionHandlers, getAllHandlers } from "@/symbols";
+import { getActionHandlers, getAllHandlers, connectBus, disconnectBus, callBus } from "@/symbols";
+import type { Bus } from "@classes/composition/Bus";
 
 export class Emitter<ActionTypes extends Record<keyof ActionTypes, Record<any, any>>> {
     private readonly handlers = new Map<keyof ActionTypes, Set<TriggerHandler<any>>>();
     private readonly onceWrappers = new WeakMap<TriggerHandler<any>, TriggerHandler<any>>();
+    private readonly buses = new Set<Bus>();
 
     emit<Action extends keyof ActionTypes>(action: Action, data: ActionTypes[Action]): boolean {
         const handlers = this.handlers.get(action);
-        if (!handlers) return false;
+        if (!handlers && !this.buses.size) return false;
 
         const trigger = Object.assign(
             new TriggerClass(),
             data,
         ) as Trigger<ActionTypes[Action]>;
 
-        const iterator = handlers.values();
-        let entry: IteratorResult<TriggerHandler<ActionTypes[Action]>>;
-        while (!(entry = iterator.next()).done) {
-            try {
-                entry.value(trigger);
-            } catch (err) {
-                console.error(err);
+        if (handlers && handlers.size) {
+            const iterator = handlers.values();
+            let entry: IteratorResult<TriggerHandler<ActionTypes[Action]>>;
+            while (!(entry = iterator.next()).done) {
+                try {
+                    entry.value(trigger);
+                } catch (err) {
+                    console.error(err);
+                }
             }
         }
+
+        if (this.buses.size) {
+            const iterator = this.buses.values();
+            let entry: IteratorResult<Bus>;
+            while(!(entry = iterator.next()).done) {
+                entry.value[callBus](action, data);
+            }
+        }
+
         return true;
     }
 
@@ -104,5 +117,29 @@ export class Emitter<ActionTypes extends Record<keyof ActionTypes, Record<any, a
 
     [getAllHandlers]() {
         return this.handlers;
+    }
+
+    [connectBus](bus: Bus) {
+        this.buses.add(bus);
+    }
+
+    [disconnectBus](bus: Bus) {
+        this.buses.delete(bus);
+    }
+
+    connectToBus(bus: Bus) {
+        bus.connect(this);
+    }
+
+    disconnectFromBus(bus: Bus) {
+        bus.disconnect(this);
+    }
+
+    disconnectAllBuses() {
+        const iterator = this.buses.values();
+        let entry: IteratorResult<Bus>;
+        while(!(entry = iterator.next()).done) {
+            entry.value.disconnect(this);
+        }
     }
 }
