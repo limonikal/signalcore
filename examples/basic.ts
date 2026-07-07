@@ -8,6 +8,11 @@ type AppEvents = {
 
 const emitter = new Emitter<AppEvents>();
 
+
+emitter.on("login", (t) => {
+
+})
+
 emitter.on("login", (t) => console.log(`User: ${t.user}`));
 emitter.emit("login", { user: "Alice" });
 

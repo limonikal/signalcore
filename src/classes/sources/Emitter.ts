@@ -3,8 +3,8 @@ import type { Trigger, TriggerHandler } from "@/types";
 import { getActionHandlers, getAllHandlers } from "@/symbols";
 
 export class Emitter<ActionTypes extends Record<keyof ActionTypes, Record<any, any>>> {
-    private readonly handlers = new Map<keyof ActionTypes, Set<TriggerHandler<any, any>>>();
-    private readonly onceWrappers = new WeakMap<TriggerHandler<any, any>, TriggerHandler<any, any>>();
+    private readonly handlers = new Map<keyof ActionTypes, Set<TriggerHandler<any>>>();
+    private readonly onceWrappers = new WeakMap<TriggerHandler<any>, TriggerHandler<any>>();
 
     emit<Action extends keyof ActionTypes>(action: Action, data: ActionTypes[Action]): boolean {
         const handlers = this.handlers.get(action);
@@ -13,16 +13,10 @@ export class Emitter<ActionTypes extends Record<keyof ActionTypes, Record<any, a
         const trigger = Object.assign(
             new TriggerClass(),
             data,
-        ) as Trigger<ActionTypes[Action], Emitter<ActionTypes>>;
-        Object.defineProperty(trigger, "emitter", {
-            value: this,
-            enumerable: false,
-            writable: true,
-            configurable: true,
-        });
+        ) as Trigger<ActionTypes[Action]>;
 
         const iterator = handlers.values();
-        let entry: IteratorResult<TriggerHandler<ActionTypes[Action], Emitter<ActionTypes>>>;
+        let entry: IteratorResult<TriggerHandler<ActionTypes[Action]>>;
         while (!(entry = iterator.next()).done) {
             try {
                 entry.value(trigger);
@@ -35,7 +29,7 @@ export class Emitter<ActionTypes extends Record<keyof ActionTypes, Record<any, a
 
     on<Action extends keyof ActionTypes>(
         action: Action,
-        handler: TriggerHandler<ActionTypes[Action], Emitter<ActionTypes>>
+        handler: TriggerHandler<ActionTypes[Action]>
     ) {
         let handlers = this.handlers.get(action);
         if (!handlers) {
@@ -56,7 +50,7 @@ export class Emitter<ActionTypes extends Record<keyof ActionTypes, Record<any, a
         }
         let count = 0;
         const mapIterator = this.handlers.values();
-        let entry: IteratorResult<Set<TriggerHandler<any, any>>>;
+        let entry: IteratorResult<Set<TriggerHandler<any>>>;
         while (!(entry = mapIterator.next()).done) {
             count += entry.value.size;
         }
@@ -69,9 +63,9 @@ export class Emitter<ActionTypes extends Record<keyof ActionTypes, Record<any, a
 
     once<Action extends keyof ActionTypes>(
         action: Action,
-        handler: TriggerHandler<ActionTypes[Action], Emitter<ActionTypes>>
+        handler: TriggerHandler<ActionTypes[Action]>
     ) {
-        const wrap: TriggerHandler<any, any> = (trigger) => {
+        const wrap: TriggerHandler<any> = (trigger) => {
             this.off(action, wrap);
             handler(trigger);
         }
@@ -81,7 +75,7 @@ export class Emitter<ActionTypes extends Record<keyof ActionTypes, Record<any, a
 
     off<Action extends keyof ActionTypes>(
         action: Action,
-        handler: TriggerHandler<ActionTypes[Action], Emitter<ActionTypes>>
+        handler: TriggerHandler<ActionTypes[Action]>
     ) {
         const handlers = this.handlers.get(action);
         if (!handlers) return;
@@ -105,7 +99,7 @@ export class Emitter<ActionTypes extends Record<keyof ActionTypes, Record<any, a
     }
 
     [getActionHandlers]<Action extends keyof ActionTypes>(action: Action) {
-        return this.handlers.get(action) as Set<TriggerHandler<ActionTypes[Action], Emitter<ActionTypes>>> | undefined;
+        return this.handlers.get(action) as Set<TriggerHandler<ActionTypes[Action]>> | undefined;
     }
 
     [getAllHandlers]() {

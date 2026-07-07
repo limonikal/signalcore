@@ -10,7 +10,7 @@ interface NodeEventSource {
 export class NodeEventEmitter<ActionTypes extends Record<string, any[]>> extends Emitter<ActionTypes> {
     private readonly source: NodeEventSource;
     private readonly handlerWrappers
-        = new Map<keyof ActionTypes, Map<TriggerHandler<any, any>, (...args: any[]) => void>>();
+        = new Map<keyof ActionTypes, Map<TriggerHandler<any>, (...args: any[]) => void>>();
 
     constructor(source: NodeEventSource) {
         super();
@@ -19,7 +19,7 @@ export class NodeEventEmitter<ActionTypes extends Record<string, any[]>> extends
 
     on<Action extends keyof ActionTypes>(
         action: Action,
-        handler: TriggerHandler<ActionTypes[Action], Emitter<ActionTypes>>,
+        handler: TriggerHandler<ActionTypes[Action]>,
     ) {
         const wrapper = (...args: any[]) => {
             super.emit(action, args as ActionTypes[Action]);
@@ -38,7 +38,7 @@ export class NodeEventEmitter<ActionTypes extends Record<string, any[]>> extends
 
     once<Action extends keyof ActionTypes>(
         action: Action,
-        handler: TriggerHandler<ActionTypes[Action], Emitter<ActionTypes>>,
+        handler: TriggerHandler<ActionTypes[Action]>,
     ) {
         const wrapper = (...args: any[]) => {
             this.handlerWrappers.get(action)?.delete(handler);
@@ -58,7 +58,7 @@ export class NodeEventEmitter<ActionTypes extends Record<string, any[]>> extends
 
     off<Action extends keyof ActionTypes>(
         action: Action,
-        handler: TriggerHandler<ActionTypes[Action], Emitter<ActionTypes>>,
+        handler: TriggerHandler<ActionTypes[Action]>,
     ) {
         const actionWrappers = this.handlerWrappers.get(action);
         if (!actionWrappers) return;

@@ -4,7 +4,7 @@ import type { TriggerHandler } from "@/types";
 export class EventTargetEmitter<ActionTypes extends Record<string, Event>> extends Emitter<ActionTypes> {
     private readonly target: EventTarget;
     private readonly handlerAborters
-        = new Map<keyof ActionTypes, Map<TriggerHandler<any, any>, AbortController>>();
+        = new Map<keyof ActionTypes, Map<TriggerHandler<any>, AbortController>>();
 
     constructor(eventTarget: EventTarget) {
         super();
@@ -13,7 +13,7 @@ export class EventTargetEmitter<ActionTypes extends Record<string, Event>> exten
 
     on<Action extends keyof ActionTypes>(
         action: Action,
-        handler: TriggerHandler<ActionTypes[Action], Emitter<ActionTypes>>,
+        handler: TriggerHandler<ActionTypes[Action]>,
         options?: AddEventListenerOptions | boolean
     ) {
         const aborter = new AbortController();
@@ -63,7 +63,7 @@ export class EventTargetEmitter<ActionTypes extends Record<string, Event>> exten
 
     once<Action extends keyof ActionTypes>(
         action: Action,
-        handler: TriggerHandler<ActionTypes[Action], Emitter<ActionTypes>>,
+        handler: TriggerHandler<ActionTypes[Action]>,
         options?: AddEventListenerOptions | boolean
     ) {
         const baseOptions: AddEventListenerOptions = typeof options === "object"
@@ -77,7 +77,7 @@ export class EventTargetEmitter<ActionTypes extends Record<string, Event>> exten
 
     off<Action extends keyof ActionTypes>(
         action: Action,
-        handler: TriggerHandler<ActionTypes[Action], Emitter<ActionTypes>>
+        handler: TriggerHandler<ActionTypes[Action]>
     ) {
         const aborters = this.handlerAborters.get(action);
         if (!aborters) return;
@@ -102,7 +102,7 @@ export class EventTargetEmitter<ActionTypes extends Record<string, Event>> exten
 
     clear() {
         const mapIterator = this.handlerAborters.values();
-        let aborters: IteratorResult<Map<TriggerHandler<any, any>, AbortController>>;
+        let aborters: IteratorResult<Map<TriggerHandler<any>, AbortController>>;
         while (!(aborters = mapIterator.next()).done) {
             const iterator = aborters.value.values();
             let entry: IteratorResult<AbortController>;

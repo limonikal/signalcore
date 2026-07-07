@@ -5,7 +5,7 @@ export async function until<
     ActionTypes extends BaseActionTypes<ActionTypes>,
     Action extends keyof ActionTypes
 >(emitter: Emitter<ActionTypes>, action: Action) {
-    return new Promise<Trigger<ActionTypes[Action], Emitter<ActionTypes>>>((resolve: (trigger: Trigger<ActionTypes[Action], Emitter<ActionTypes>>) => void) => {
+    return new Promise<Trigger<ActionTypes[Action]>>((resolve: (trigger: Trigger<ActionTypes[Action]>) => void) => {
         emitter.once(action, resolve);
     });
 }

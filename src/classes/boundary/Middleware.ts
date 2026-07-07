@@ -8,7 +8,7 @@ type MiddlewareActionTypes<
 type MiddlewareHandler<
     ActionTypes extends Record<keyof ActionTypes, Record<any, any>>,
     UsedActions extends (keyof ActionTypes)[]
-> = (target: Trigger<MiddlewareActionTypes<ActionTypes, UsedActions>, Emitter<ActionTypes>>) => void;
+> = (target: Trigger<MiddlewareActionTypes<ActionTypes, UsedActions>>) => void;
 
 export class Middleware<
     ActionTypes extends Record<keyof ActionTypes, Record<any, any>>,
